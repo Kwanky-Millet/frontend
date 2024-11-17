@@ -9,48 +9,86 @@ const FleetChat = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [inputValue, setInputValue] = useState('');
 
-  async function postMessage (message) {
+  async function postMessage(message) {
+    console.log('🚀 Initiating API call with message:', message);
     let data = {
-      // message: "I need a diabetes-friendly dinner recipe. Can you find one and confirm if it aligns with my health records and medications?"
       topic: message
     };
-    const res = await fetch("https://f1e4-38-29-145-10.ngrok-free.app/process_query", {
+    try {
+      console.log('📡 Sending request to API...');
+      const res = await fetch("https://f1e4-38-29-145-10.ngrok-free.app/process_query", {
         method: "POST",
         headers: {
-        "Content-Type": "application/json", 
+          "Content-Type": "application/json",
         },
-            body: JSON.stringify(data),
-    });
-    const out = res.json().then();
-    console.log(out);
-   return out;
+        body: JSON.stringify(data),
+      });
+      console.log('📥 Raw API response status:', res.status);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const jsonResponse = await res.json();
+      console.log('✅ Parsed API response structure:', {
+        hasResult: !!jsonResponse.result,
+        hasResponse: !!jsonResponse.result?.response,
+        responseLength: jsonResponse.result?.response?.length
+      });
+      return jsonResponse;
+    } catch (error) {
+      console.error('❌ postMessage error:', {
+        message: error.message,
+        stack: error.stack,
+        data: data
+      });
+      throw error;
+    }
   }
 
-  const sendMessage = (message) => {
-    setMessages((prev) => [...prev, { sender: 'user', content: message }]);
+  const sendMessage = async (message) => {
+    console.log('📝 Starting sendMessage flow with:', message);
+    setMessages((prev) => {
+      console.log('💬 Adding user message to chat');
+      return [...prev, { sender: 'user', content: message }];
+    });
     setInputValue('');
     setIsTyping(true);
-    const response = postMessage(message);
-
-    setTimeout(() => {
-        console.log("response")
-        console.log(response)
-        console.log("haha")
-        // response.then((data) => {return data.json}).then((data_json) =>{console.log(data_json)})
-        // const x = await response;
-        if (response.response) {
-            setMessages((prev) => [
-                ...prev,
-                { sender: 'bot', content: "sdfs" },
-              ]);
-        } else {
-            setMessages((prev) => [
-                ...prev,
-                { sender: 'bot', content: "I'm sorry. Something went wrong. Please try again in some time." },
-              ]);
-        }
+    
+    try {
+      const response = await postMessage(message);
+      console.log('📨 Processing response structure:', {
+        hasResult: !!response.result,
+        responseContent: response.result?.response?.substring(0, 50) + '...'
+      });
+      
+      if (!response.result?.response) {
+        console.warn('⚠️ Missing result.response in:', response);
+        throw new Error('Invalid response format');
+      }
+      
+      setMessages((prev) => {
+        console.log('🤖 Adding bot response to chat');
+        return [
+          ...prev,
+          { 
+            sender: 'bot', 
+            content: response.result.response
+          },
+        ];
+      });
+    } catch (error) {
+      console.error('💥 sendMessage error:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
+      setMessages((prev) => [
+        ...prev,
+        { sender: 'bot', content: "I'm sorry. Something went wrong. Please try again in some time." },
+      ]);
+    } finally {
+      console.log('🏁 Completing message flow');
       setIsTyping(false);
-    }, 30000);
+    }
   };
 
   return (
