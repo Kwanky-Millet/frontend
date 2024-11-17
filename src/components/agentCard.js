@@ -1,5 +1,6 @@
 import { Button, Dialog, DialogPanel, DialogTitle, Switch, Transition, TransitionChild } from '@headlessui/react';
 import { Fragment, useState } from 'react';
+import FileDrop from './fileDrop';
 
 const AgentCard = ({ avatar, title, description, detailed_description}) => {
 let [isOpen, setIsOpen] = useState(false);
@@ -11,6 +12,41 @@ let [enabled, setEnabled] = useState(true);
 
   function close() {
     setIsOpen(false)
+  }
+
+  async function handleTrigger() {
+    console.log('🚀 Initiating API call with trigger',);
+    let data = {
+      topic: "trigger"
+    };
+    try {
+      console.log('📡 Sending request to API...');
+      const res = await fetch("https://f1e4-38-29-145-10.ngrok-free.app/whatsapp_message", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      console.log('📥 Raw API response status:', res.status);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const jsonResponse = await res.json();
+      console.log('✅ Parsed API response structure:', {
+        hasResult: !!jsonResponse.result,
+        hasResponse: !!jsonResponse.result?.response,
+        responseLength: jsonResponse.result?.response?.length
+      });
+      return jsonResponse;
+    } catch (error) {
+      console.error('❌ handleTrigger error:', {
+        message: error.message,
+        stack: error.stack,
+        data: data
+      });
+      throw error;
+    }
   }
 
   return (
@@ -126,7 +162,9 @@ let [enabled, setEnabled] = useState(true);
                       type="file"
                       className="block w-full mt-2 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     /> */}
-                    <div className="flex items-center justify-center w-full border-2 border-black rounded-lg">
+
+                    {/* Old FileDrop begins here*/}
+                    {/* <div className="flex items-center justify-center w-full border-2 border-black rounded-lg">
                       <label for="dropzone-file" className="flex flex-col items-center justify-center w-full h-32 rounded-lg cursor-pointer bg-white">
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                           <svg className="w-8 h-8 mb-4 text-black" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
@@ -139,7 +177,9 @@ let [enabled, setEnabled] = useState(true);
                         </div>
                         <input id="dropzone-file" type="file" className="hidden" />
                       </label>
-                    </div> 
+                    </div>  */}
+
+                    <FileDrop />
                   </div>
                   <div className="mt-4">
                     <label
