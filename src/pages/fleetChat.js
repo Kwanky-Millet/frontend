@@ -21,7 +21,7 @@ const FleetChat = () => {
         },
             body: JSON.stringify(data),
     });
-    const out = await res.json();
+    const out = res.json().then();
     console.log(out);
    return out;
   }
@@ -36,12 +36,12 @@ const FleetChat = () => {
         console.log("response")
         console.log(response)
         console.log("haha")
-        // console.log(response.then((data) => {console.log(data.value.result.response)}))
-        const x = await response;
+        // response.then((data) => {return data.json}).then((data_json) =>{console.log(data_json)})
+        // const x = await response;
         if (response.response) {
             setMessages((prev) => [
                 ...prev,
-                { sender: 'bot', content: response.then(data) },
+                { sender: 'bot', content: "sdfs" },
               ]);
         } else {
             setMessages((prev) => [
