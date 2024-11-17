@@ -181,6 +181,7 @@ let [enabled, setEnabled] = useState(true);
                     <button
                       type="button"
                       className="px-4 py-2 bg-black text-white rounded-full border-2 border-black hover:shadow-lg transition duration-400"
+                      onClick={close}
                     >
                       Spawn
                     </button>
